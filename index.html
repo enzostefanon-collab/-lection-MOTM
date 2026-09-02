@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Élection Homme/Femme du Match - Bogny VPA Handball</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js pour le graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vpa: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            green: '#10b981',
+                            'green-dark': '#047857',
+                            'green-light': '#ecfdf5',
+                            dark: '#0f172a',
+                            slate: '#1e293b',
+                            cyan: '#06b6d4'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-vpa-500 selection:text-white bg-slate-100">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-vpa-dark text-white border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-3xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <!-- Official Club Logo Image -->
+                <div class="w-12 h-12 rounded-full bg-slate-900 ring-2 ring-vpa-500 shadow-lg flex items-center justify-center shrink-0 overflow-hidden">
+                    <img id="header-logo-img" src="https://bhb08.fr/wp-content/uploads/2013/07/Logo-bogny-2013.png" 
+                         alt="Logo Bogny Hautes-Rivières VPA Handball" 
+                         class="w-full h-full object-cover"
+                         onerror="this.onerror=null; this.src='https://placehold.co/200x200/0f172a/f97316?text=BHR+VPA';">
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-white text-sm sm:text-base leading-tight tracking-wide flex items-center gap-1.5">
+                        Bogny Hautes-Rivières VPA Handball
+                    </h1>
+                    <p class="text-[11px] text-slate-300 font-medium">Vallées & Plateau d'Ardenne</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <button id="nav-vote-btn" onclick="showTab('vote')" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-vpa-500 text-white shadow-sm hover:bg-vpa-600">
+                    <i class="fa-solid fa-check-to-slot mr-1"></i> Vote
+                </button>
+                <button id="nav-admin-btn" onclick="showTab('admin')" type="button" class="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800">
+                    <i class="fa-solid fa-user-gear mr-1"></i> Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6 pb-20">
+
+        <!-- ================= VOTE SECTION ================= -->
+        <section id="tab-vote" class="space-y-6">
+            
+            <!-- Banner Status with VPA Club Gradient -->
+            <div id="match-status-banner" class="bg-gradient-to-r from-vpa-dark via-slate-900 to-vpa-slate text-white rounded-2xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden transition-all duration-300">
+                <div class="absolute -right-6 -bottom-6 opacity-15 text-vpa-500 pointer-events-none">
+                    <i class="fa-solid fa-trophy text-9xl"></i>
+                </div>
+                <!-- Decorative Club Color Bars -->
+                <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-vpa-500 via-vpa-green to-vpa-cyan"></div>
+
+                <div class="relative z-10 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span id="status-badge" class="inline-flex items-center px-2.5 py-0.5 bg-vpa-green/20 border border-vpa-green/40 text-emerald-300 rounded-full text-xs font-bold tracking-wide uppercase">
+                            <i class="fa-solid fa-circle text-[8px] text-emerald-400 animate-pulse mr-1.5"></i> Élection du Joueur du Match
+                        </span>
+                        <span class="text-xs text-orange-300 font-semibold flex items-center gap-1">
+                            <i class="fa-solid fa-location-dot"></i> Bogny / Hautes-Rivières
+                        </span>
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tight text-white" id="display-match-title">Rencontre Bogny Hautes-Rivières VPA Handball</h2>
+                    <p class="text-slate-300 text-xs sm:text-sm font-medium" id="display-match-details">Soutenez vos joueurs et joueuses favoris en enregistrant votre vote !</p>
+                </div>
+            </div>
+
+            <!-- Google Form-style Card -->
+            <form id="voting-form" onsubmit="handleVote(event)" class="space-y-6">
+                
+                <!-- Team Selector -->
+                <div id="team-card" class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-3">
+                    <label class="block font-bold text-slate-900 text-sm sm:text-base">
+                        1. Équipe à voter <span class="text-vpa-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-3" id="team-buttons-grid">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="team" value="A" class="peer hidden" checked onchange="renderPlayersList()">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 text-center peer-checked:border-vpa-500 peer-checked:bg-vpa-50 peer-checked:text-vpa-700 transition-all font-bold text-slate-700 text-sm truncate shadow-sm hover:border-vpa-500/50" id="display-team-a-label">
+                                <i class="fa-solid fa-shield-halved mr-1.5 text-vpa-500"></i> Équipe A
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="team" value="B" class="peer hidden" onchange="renderPlayersList()">
+                            <div class="p-3 rounded-xl border-2 border-slate-200 text-center peer-checked:border-emerald-600 peer-checked:bg-emerald-50 peer-checked:text-emerald-800 transition-all font-bold text-slate-700 text-sm truncate shadow-sm hover:border-emerald-600/50" id="display-team-b-label">
+                                <i class="fa-solid fa-shield-halved mr-1.5 text-emerald-600"></i> Équipe B
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Players Selection Card -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <label class="block font-bold text-slate-900 text-sm sm:text-base">
+                            2. Sélectionnez votre MVP <span class="text-vpa-500">*</span>
+                        </label>
+                        <span class="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full" id="player-count-badge">0 joueurs</span>
+                    </div>
+
+                    <!-- Search / Filter Player -->
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                        <input type="text" id="player-search" oninput="filterPlayers()" placeholder="Rechercher un joueur..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/30 focus:border-vpa-500 transition-all">
+                    </div>
+
+                    <!-- List of Players Radio Buttons -->
+                    <div id="players-list-container" class="space-y-2 max-h-80 overflow-y-auto pr-1">
+                        <!-- JS injected list -->
+                    </div>
+                </div>
+
+                <!-- Voter Name (Optional) -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-3">
+                    <label class="block font-bold text-slate-900 text-sm sm:text-base">
+                        3. Votre Nom ou Pseudo <span class="text-xs font-normal text-slate-400">(Optionnel)</span>
+                    </label>
+                    <input type="text" id="voter-name" placeholder="Ex: Lucas M." class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/30 focus:border-vpa-500">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submit-vote-btn" class="w-full py-4 bg-vpa-500 hover:bg-vpa-600 text-white font-extrabold text-base sm:text-lg rounded-2xl shadow-lg shadow-vpa-500/25 transition-all flex items-center justify-center space-x-2 active:scale-[0.99]">
+                    <i class="fa-solid fa-paper-plane text-sm"></i>
+                    <span id="submit-btn-text">Valider mon vote</span>
+                </button>
+            </form>
+
+            <!-- Success / Already Voted State Screen -->
+            <div id="vote-success-screen" class="hidden bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm text-center space-y-4">
+                <div class="w-16 h-16 bg-vpa-50 text-vpa-500 rounded-full flex items-center justify-center mx-auto text-2xl border border-vpa-100">
+                    <i class="fa-solid fa-check-double"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold text-slate-900" id="already-voted-title">Vote Enregistré !</h3>
+                    <p class="text-slate-500 text-xs mt-1">Merci pour votre soutien à Bogny Hautes-Rivières VPA Handball.</p>
+                </div>
+
+                <!-- Recap Card -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 text-left space-y-2">
+                    <span class="text-[10px] uppercase font-extrabold text-vpa-600 tracking-wider">Votre Sélection :</span>
+                    <div class="flex items-center justify-between">
+                        <span class="font-black text-slate-900 text-base" id="voted-player-name">-</span>
+                        <span class="px-2.5 py-1 bg-vpa-500 text-white font-bold text-xs rounded-lg shadow-sm" id="voted-player-team">-</span>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-center">
+                    <button onclick="enableVoteModification()" id="modify-vote-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                        <span>Modifier mon vote</span>
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ================= ADMIN SECTION ================= -->
+        <section id="tab-admin" class="hidden space-y-6">
+            
+            <!-- Admin Login Lock Screen -->
+            <div id="admin-login-card" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4 max-w-md mx-auto">
+                <div class="text-center space-y-1">
+                    <div class="w-12 h-12 bg-slate-100 text-slate-700 rounded-xl flex items-center justify-center mx-auto mb-2 text-xl">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Accès Administrateur</h3>
+                    <p class="text-xs text-slate-500">Entrez le mot de passe pour consulter les résultats et gérer la liste.</p>
+                </div>
+                <div class="space-y-3">
+                    <input type="password" id="admin-password-input" placeholder="Mot de passe" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                    <button onclick="checkAdminPassword()" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all">
+                        Se connecter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard Content (Hidden until authenticated) -->
+            <div id="admin-dashboard" class="hidden space-y-6">
+                
+                <!-- Quick Controls Bar -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Session Admin</span>
+                        <h3 class="font-bold text-slate-900" id="admin-match-name">Gérer la rencontre</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="toggleVotingStatus()" id="status-toggle-btn" class="px-3 py-1.5 text-xs font-bold rounded-lg border transition-all bg-emerald-50 text-emerald-700 border-emerald-200">
+                            <i class="fa-solid fa-power-off mr-1"></i> Vote Actif
+                        </button>
+                        <button onclick="openResetModal()" class="px-3 py-1.5 text-xs font-bold rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 transition-all">
+                            <i class="fa-solid fa-trash mr-1"></i> RAZ Votes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Match & Category Config Card -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-900 text-base flex items-center">
+                        <i class="fa-solid fa-sliders text-vpa-500 mr-2"></i> Configuration de la Rencontre
+                    </h3>
+                    <form onsubmit="saveMatchConfig(event)" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Logo du Club (URL ou Import d'image)</label>
+                            <div class="flex items-center space-x-2">
+                                <input type="text" id="config-logo-url" placeholder="URL du logo..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                                <label class="cursor-pointer bg-slate-100 hover:bg-vpa-50 text-slate-700 hover:text-vpa-700 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border border-slate-200 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-upload text-vpa-500"></i> Choisir image
+                                    <input type="file" id="config-logo-file" accept="image/*" class="hidden" onchange="handleLogoUpload(event)">
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Titre de l'affiche</label>
+                            <input type="text" id="config-match-title" required placeholder="Ex: Rencontre Bogny Hautes-Rivières VPA Handball" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Description / Sous-titre</label>
+                            <input type="text" id="config-match-details" placeholder="Ex: Gymnase de Bogny - 15h00" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nom Équipe A</label>
+                                <input type="text" id="config-team-a" required placeholder="Ex: Séniors A" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nom Équipe B</label>
+                                <input type="text" id="config-team-b" required placeholder="Ex: Séniors B" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-500 mb-1">Catégories ouvertes au vote</label>
+                            <select id="config-allowed-categories" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                                <option value="ALL">Les deux catégories (Hommes & Femmes)</option>
+                                <option value="H">Uniquement Hommes / Garçons</option>
+                                <option value="F">Uniquement Femmes / Filles</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all shadow-md">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i> Enregistrer les modifications
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Live Results Section (Dual Team Leaders & Streamlined Leaderboard) -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                    
+                    <!-- Title & View Toggles -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-lg">Résultats en Direct</h3>
+                            <p class="text-xs text-slate-500">Joueur / Joueuse du match VPA</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
+                                <button onclick="switchResultsDisplay('list')" id="btn-disp-list" class="px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold">
+                                    <i class="fa-solid fa-list-ol mr-1"></i> Rang
+                                </button>
+                                <button onclick="switchResultsDisplay('chart')" id="btn-disp-chart" class="px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900">
+                                    <i class="fa-solid fa-chart-bar mr-1"></i> Graph
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dual Winner Highlights Podium -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="p-3 bg-gradient-to-br from-orange-50 to-vpa-50 border border-orange-200 rounded-xl flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-vpa-500 text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+                                <i class="fa-solid fa-trophy text-amber-200"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-vpa-700 block truncate" id="podium-team-a-name">MVP Équipe A</span>
+                                <p class="font-bold text-slate-900 text-sm truncate" id="podium-team-a-winner">Aucun vote</p>
+                                <span class="text-xs text-vpa-600 font-semibold" id="podium-team-a-count">0 votes</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-vpa-green text-white flex items-center justify-center font-bold text-lg shadow-md shrink-0">
+                                <i class="fa-solid fa-trophy text-amber-200"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="text-[10px] font-extrabold uppercase tracking-wider text-vpa-green-dark block truncate" id="podium-team-b-name">MVP Équipe B</span>
+                                <p class="font-bold text-slate-900 text-sm truncate" id="podium-team-b-winner">Aucun vote</p>
+                                <span class="text-xs text-vpa-green-dark font-semibold" id="podium-team-b-count">0 votes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Team & Category Filters -->
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <!-- Team Selector Tabs -->
+                        <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold max-w-full overflow-x-auto">
+                            <button onclick="switchChartTeam('A')" id="btn-chart-team-a" class="px-3 py-1.5 rounded-lg bg-white shadow-sm text-vpa-700 font-bold transition-all truncate">
+                                Équipe A
+                            </button>
+                            <button onclick="switchChartTeam('B')" id="btn-chart-team-b" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-all truncate">
+                                Équipe B
+                            </button>
+                        </div>
+
+                        <!-- Category Selector -->
+                        <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-medium">
+                            <button onclick="switchChartCategory('ALL')" id="btn-chart-cat-all" class="px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold">Tous</button>
+                            <button onclick="switchChartCategory('H')" id="btn-chart-cat-h" class="px-2.5 py-1 rounded-lg text-slate-500">G</button>
+                            <button onclick="switchChartCategory('F')" id="btn-chart-cat-f" class="px-2.5 py-1 rounded-lg text-slate-500">F</button>
+                        </div>
+                    </div>
+
+                    <!-- Clean Leaderboard List View -->
+                    <div id="results-leaderboard-view" class="space-y-2 max-h-96 overflow-y-auto pr-1">
+                        <!-- JS injected clean ranking cards -->
+                    </div>
+
+                    <!-- Chart Container (Alternative view) -->
+                    <div id="results-chart-view" class="relative w-full h-72 hidden">
+                        <canvas id="votesChart"></canvas>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Total votes enregistrés: <strong id="total-votes-count" class="text-slate-900">0</strong></span>
+                        <span id="last-updated-time">Mise à jour automatique</span>
+                    </div>
+                </div>
+
+                <!-- Player Management Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Add Player Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-900 text-base">Ajouter un Joueur / Joueuse</h3>
+                        <form onsubmit="addNewPlayer(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nom Complet</label>
+                                <input type="text" id="new-player-name" required placeholder="Ex: Antoine Dupont" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                            </div>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Équipe</label>
+                                    <select id="new-player-team" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                                        <option value="A" id="option-team-a">Équipe A</option>
+                                        <option value="B" id="option-team-b">Équipe B</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Catégorie</label>
+                                    <select id="new-player-category" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                                        <option value="H">Homme (H)</option>
+                                        <option value="F">Femme (F)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-500 mb-1">Numéro</label>
+                                    <input type="number" id="new-player-number" placeholder="Ex: 10" class="w-full px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-vpa-500 hover:bg-vpa-600 text-white font-semibold rounded-xl text-sm transition-all shadow-md shadow-vpa-500/20">
+                                <i class="fa-solid fa-plus mr-1"></i> Ajouter à l'effectif
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Manage Current Squad -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-slate-900 text-base">Effectif Actuel</h3>
+                            <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-semibold" id="total-squad-count">0</span>
+                        </div>
+                        <div id="admin-players-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                            <!-- JS injected admin players list -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <!-- Change Password Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-slate-900 text-base flex items-center">
+                            <i class="fa-solid fa-key text-vpa-500 mr-2"></i> Modifier le mot de passe
+                        </h3>
+                        <form onsubmit="changeAdminPassword(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Mot de passe actuel</label>
+                                <input type="password" id="old-admin-password" required placeholder="Saisir le mot de passe actuel" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-500 mb-1">Nouveau mot de passe</label>
+                                <input type="password" id="new-admin-password" required placeholder="Nouveau mot de passe" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-vpa-500/20">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-all shadow-md">
+                                <i class="fa-solid fa-shield-halved mr-1"></i> Mettre à jour le mot de passe
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Logout Card -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-base flex items-center">
+                                <i class="fa-solid fa-right-from-bracket text-red-500 mr-2"></i> Déconnexion
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Fermer la session d'administration pour verrouiller à nouveau l'accès au panneau de gestion.</p>
+                        </div>
+                        <button onclick="adminLogout()" class="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl text-sm transition-all border border-red-200 flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-power-off"></i>
+                            <span>Se déconnecter</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Custom Modal for Reset Confirmation (Replaces confirm()) -->
+    <div id="modal-confirm-reset" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden transition-all duration-300">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100 text-center">
+            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Réinitialiser tous les votes ?</h3>
+                <p class="text-xs text-slate-500 mt-1">Cette action effacera définitivement tous les résultats enregistrés pour cette rencontre.</p>
+            </div>
+            <div class="flex items-center space-x-2 pt-2">
+                <button onclick="closeResetModal()" class="w-1/2 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all">
+                    Annuler
+                </button>
+                <button onclick="confirmClearVotes()" class="w-1/2 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-md transition-all">
+                    Oui, effacer tout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center space-x-3 pointer-events-none">
+        <i id="toast-icon" class="fa-solid fa-circle-info text-vpa-500"></i>
+        <span id="toast-message" class="text-sm font-medium">Notification</span>
+    </div>
+
+    <!-- Firebase App & Firestore JS (v11) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, addDoc, onSnapshot, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global State & Default Data
+        window.appState = {
+            user: null,
+            adminPassword: localStorage.getItem('potm_admin_pwd') || 'admin123',
+            matchConfig: {
+                title: 'Rencontre Bogny Hautes-Rivières VPA Handball',
+                details: 'Sélectionnez qui mérite le titre de Joueur/Joueuse du match !',
+                categories: 'ALL',
+                teamA: 'Équipe A',
+                teamB: 'Équipe B',
+                logoUrl: 'https://bhb08.fr/wp-content/uploads/2013/07/Logo-bogny-2013.png'
+            },
+            players: [
+                // Team A
+                { id: '1', name: 'Lucas Hernandez', team: 'A', category: 'H', number: 21 },
+                { id: '2', name: 'Kylian Mbappé', team: 'A', category: 'H', number: 10 },
+                { id: '3', name: 'Antoine Griezmann', team: 'A', category: 'H', number: 7 },
+                { id: '4', name: 'Grace Geyoro', team: 'A', category: 'F', number: 8 },
+                { id: '5', name: 'Eugénie Le Sommer', team: 'A', category: 'F', number: 9 },
+                { id: '6', name: 'Wendie Renard', team: 'A', category: 'F', number: 3 },
+
+                // Team B
+                { id: '7', name: 'Pierre-Emerick Aubameyang', team: 'B', category: 'H', number: 10 },
+                { id: '8', name: 'Valentin Rongier', team: 'B', category: 'H', number: 21 },
+                { id: '9', name: 'Kadidiatou Diani', team: 'B', category: 'F', number: 11 },
+                { id: '10', name: 'Sakina Karchaoui', team: 'B', category: 'F', number: 7 }
+            ],
+            votes: [],
+            votingOpen: true,
+            activeChartCategory: 'ALL',
+            activeChartTeam: 'A',
+            resultsDisplayMode: 'list',
+            userVote: null,
+            isEditingVote: false
+        };
+
+        let db, auth;
+        let chartInstance = null;
+
+        // Get or Create Persistent Local Device ID
+        function getDeviceId() {
+            let deviceId = localStorage.getItem('potm_device_uid');
+            if (!deviceId) {
+                deviceId = 'device_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(36);
+                localStorage.setItem('potm_device_uid', deviceId);
+            }
+            return deviceId;
+        }
+
+        function getCurrentVoterUid() {
+            return window.appState.user?.uid || getDeviceId();
+        }
+
+        // Check if current user/device has already voted
+        function checkExistingUserVote() {
+            const voterUid = getCurrentVoterUid();
+            
+            // Check in votes list
+            const matchedVote = window.appState.votes.find(v => v.voterUid === voterUid);
+            
+            // Fallback check in LocalStorage
+            const localVoteStr = localStorage.getItem('potm_my_vote');
+            let localVote = null;
+            if (localVoteStr) {
+                try { localVote = JSON.parse(localVoteStr); } catch(e){}
+            }
+
+            const existingVote = matchedVote || localVote;
+
+            if (existingVote && !window.appState.isEditingVote) {
+                window.appState.userVote = existingVote;
+                showAlreadyVotedScreen(existingVote);
+            } else if (!window.appState.isEditingVote) {
+                document.getElementById('voting-form')?.classList.remove('hidden');
+                document.getElementById('vote-success-screen')?.classList.add('hidden');
+            }
+        }
+
+        function showAlreadyVotedScreen(voteData) {
+            const form = document.getElementById('voting-form');
+            const successScreen = document.getElementById('vote-success-screen');
+            const playerNameEl = document.getElementById('voted-player-name');
+            const playerTeamEl = document.getElementById('voted-player-team');
+
+            if (form) form.classList.add('hidden');
+            if (successScreen) successScreen.classList.remove('hidden');
+
+            if (playerNameEl) playerNameEl.textContent = voteData.playerName || 'Joueur sélectionné';
+            
+            if (playerTeamEl) {
+                const { teamA, teamB } = window.appState.matchConfig;
+                playerTeamEl.textContent = voteData.team === 'A' ? (teamA || 'Équipe A') : (teamB || 'Équipe B');
+            }
+        }
+
+        window.enableVoteModification = function() {
+            if (!window.appState.votingOpen) {
+                showToast("Les votes sont fermés, modification impossible.", "error");
+                return;
+            }
+
+            window.appState.isEditingVote = true;
+            document.getElementById('voting-form')?.classList.remove('hidden');
+            document.getElementById('vote-success-screen')?.classList.add('hidden');
+            
+            const submitBtnText = document.getElementById('submit-btn-text');
+            if (submitBtnText) submitBtnText.textContent = "Mettre à jour mon vote";
+
+            // Pre-select team radio and player
+            if (window.appState.userVote) {
+                const teamRadio = document.querySelector(`input[name="team"][value="${window.appState.userVote.team}"]`);
+                if (teamRadio) {
+                    teamRadio.checked = true;
+                    renderPlayersList();
+                }
+
+                if (window.appState.userVote.playerId) {
+                    setTimeout(() => {
+                        const playerRadio = document.querySelector(`input[name="selectedPlayer"][value="${window.appState.userVote.playerId}"]`);
+                        if (playerRadio) playerRadio.checked = true;
+                    }, 50);
+                }
+            }
+
+            showToast("Vous pouvez maintenant modifier votre vote.", "warning");
+        };
+
+        // Initialize Firebase with robust error handling and multi-device public paths
+        async function initFirebase() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' 
+                    ? JSON.parse(__firebase_config) 
+                    : { apiKey: "demo", authDomain: "demo.firebaseapp.com", projectId: "demo-app" };
+
+                // 1. Initialisation de Firebase et Firestore
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // 2. Gestion de l'authentification (jeton personnalisé ou mode anonyme)
+                if (typeof __initial_auth_token !== 'undefined' __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        window.appState.user = user;
+                        // 3. Activation des écouteurs en temps réel dès que l'utilisateur est authentifié
+                        setupRealtimeListeners();
+                    }
+                });
+
+            } catch (error) {
+                console.warn("Firebase Running in Local Fallback Mode:", error);
+                applyMatchConfig();
+                renderPlayersList();
+                initChart();
+            }
+        }
+
+        // Setup Firestore Realtime Listeners using mandatory /artifacts/{appId}/public/data paths
+        function setupRealtimeListeners() {
+            const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+            
+            // Définition des collections dans l'arborescence publique requise
+            const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+            const votesCol = collection(db, 'artifacts', appId, 'public', 'data', 'votes');
+            const configCol = collection(db, 'artifacts', appId, 'public', 'data', 'config');
+
+            // 4. Synchronisation en temps réel de la configuration (onSnapshot)
+            onSnapshot(configCol, (snapshot) => {
+                const matchDoc = snapshot.docs.find(d => d.id === 'matchSettings');
+                if (matchDoc) {
+                    const data = matchDoc.data();
+                    window.appState.matchConfig = { ...window.appState.matchConfig, ...data };
+                    if (data.adminPassword) {
+                        window.appState.adminPassword = data.adminPassword;
+                        localStorage.setItem('potm_admin_pwd', data.adminPassword);
+                    }
+                }
+                applyMatchConfig();
+            }, (err) => console.error("Config sync error:", err));
+
+            // 5. Synchronisation en temps réel de l'effectif des joueurs
+            onSnapshot(playersCol, async (snapshot) => {
+                if (!snapshot.empty) {
+                    window.appState.players = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } else {
+                    // Insertion des joueurs initiaux si la collection est vide
+                    for (const p of window.appState.players) {
+                        const { id, ...pData } = p;
+                        try { await addDoc(playersCol, pData); } catch(e){}
+                    }
+                }
+                renderPlayersList();
+                renderAdminPlayersList();
+                updateChartData();
+            }, (err) => console.error("Players sync error:", err));
+
+            // 6. Synchronisation en temps réel des votes de tous les appareils
+            onSnapshot(votesCol, (snapshot) => {
+                window.appState.votes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                checkExistingUserVote();
+                updateChartData();
+            }, (err) => console.error("Votes sync error:", err));
+        }
+
+        // Apply Config to Banner & Form
+        window.applyMatchConfig = function() {
+            const { title, details, categories, teamA, teamB, logoUrl } = window.appState.matchConfig;
+
+            // Update Header Logo
+            const logoImg = document.getElementById('header-logo-img');
+            if (logoImg && logoUrl) {
+                logoImg.src = logoUrl;
+            }
+
+            // Update Banner & Headers
+            const bannerTitle = document.getElementById('display-match-title');
+            const bannerDetails = document.getElementById('display-match-details');
+            const adminMatchName = document.getElementById('admin-match-name');
+
+            if (bannerTitle) bannerTitle.textContent = title || 'Rencontre Bogny Hautes-Rivières VPA Handball';
+            if (bannerDetails) bannerDetails.textContent = details || '';
+            if (adminMatchName) adminMatchName.textContent = title || 'Gérer la rencontre';
+
+            // Team Labels
+            const teamALabel = teamA || 'Équipe A';
+            const teamBLabel = teamB || 'Équipe B';
+
+            const teamALabelEl = document.getElementById('display-team-a-label');
+            const teamBLabelEl = document.getElementById('display-team-b-label');
+            if (teamALabelEl) teamALabelEl.innerHTML = `<i class="fa-solid fa-shield-halved mr-1.5 text-vpa-500"></i> ${teamALabel}`;
+            if (teamBLabelEl) teamBLabelEl.innerHTML = `<i class="fa-solid fa-shield-halved mr-1.5 text-emerald-600"></i> ${teamBLabel}`;
+
+            // Chart/Results Team Buttons
+            const btnChartTeamA = document.getElementById('btn-chart-team-a');
+            const btnChartTeamB = document.getElementById('btn-chart-team-b');
+            if (btnChartTeamA) btnChartTeamA.textContent = teamALabel;
+            if (btnChartTeamB) btnChartTeamB.textContent = teamBLabel;
+
+            // Admin Add Player Team Dropdowns
+            const optTeamA = document.getElementById('option-team-a');
+            const optTeamB = document.getElementById('option-team-b');
+            if (optTeamA) optTeamA.textContent = teamALabel;
+            if (optTeamB) optTeamB.textContent = teamBLabel;
+
+            // Fill admin form inputs if present
+            const inputTitle = document.getElementById('config-match-title');
+            const inputDetails = document.getElementById('config-match-details');
+            const inputTeamA = document.getElementById('config-team-a');
+            const inputTeamB = document.getElementById('config-team-b');
+            const selectCategories = document.getElementById('config-allowed-categories');
+
+            if (inputTitle && document.activeElement !== inputTitle) inputTitle.value = title || '';
+            if (inputDetails && document.activeElement !== inputDetails) inputDetails.value = details || '';
+            if (inputTeamA && document.activeElement !== inputTeamA) inputTeamA.value = teamALabel;
+            if (inputTeamB && document.activeElement !== inputTeamB) inputTeamB.value = teamBLabel;
+            if (selectCategories) selectCategories.value = categories || 'ALL';
+
+            const inputLogoUrl = document.getElementById('config-logo-url');
+            if (inputLogoUrl && document.activeElement !== inputLogoUrl) inputLogoUrl.value = logoUrl || '';
+
+            renderPlayersList();
+            updateChartData();
+        };
+
+        // Save Match Configuration
+        window.saveMatchConfig = async function(event) {
+            event.preventDefault();
+            const title = document.getElementById('config-match-title').value;
+            const details = document.getElementById('config-match-details').value;
+            const teamA = document.getElementById('config-team-a').value;
+            const teamB = document.getElementById('config-team-b').value;
+            const categories = document.getElementById('config-allowed-categories').value;
+            const logoUrl = document.getElementById('config-logo-url').value;
+
+            const updatedConfig = { title, details, teamA, teamB, categories, logoUrl };
+            window.appState.matchConfig = { ...window.appState.matchConfig, ...updatedConfig };
+
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'matchSettings');
+                    await setDoc(configDocRef, updatedConfig);
+                } catch (e) {
+                    console.error("Error saving match config:", e);
+                }
+            }
+
+            applyMatchConfig();
+            showToast("Configuration et logo enregistrés avec succès !");
+        };
+
+        // Handle File Upload for Custom Logo
+        window.handleLogoUpload = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 2 * 1024 * 1024) {
+                showToast("L'image est trop volumineuse (maximum 2 Mo).", "error");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const dataUrl = e.target.result;
+                const inputLogoUrl = document.getElementById('config-logo-url');
+                if (inputLogoUrl) inputLogoUrl.value = dataUrl;
+
+                const logoImg = document.getElementById('header-logo-img');
+                if (logoImg) logoImg.src = dataUrl;
+
+                showToast("Nouveau logo prêt ! Cliquez sur 'Enregistrer' pour valider.");
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // Global Window Attachments for inline HTML events
+        window.showTab = function(tabName) {
+            const voteTab = document.getElementById('tab-vote');
+            const adminTab = document.getElementById('tab-admin');
+            const navVoteBtn = document.getElementById('nav-vote-btn');
+            const navAdminBtn = document.getElementById('nav-admin-btn');
+
+            if (!voteTab || !adminTab || !navVoteBtn || !navAdminBtn) return;
+
+            if (tabName === 'vote') {
+                voteTab.classList.remove('hidden');
+                adminTab.classList.add('hidden');
+                navVoteBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-vpa-500 text-white shadow-sm hover:bg-vpa-600";
+                navAdminBtn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800";
+            } else {
+                voteTab.classList.add('hidden');
+                adminTab.classList.remove('hidden');
+                navAdminBtn.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-vpa-500 text-white shadow-sm hover:bg-vpa-600";
+                navVoteBtn.className = "px-3 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-300 hover:text-white hover:bg-slate-800";
+            }
+        };
+
+        window.renderPlayersList = function() {
+            const selectedTeam = document.querySelector('input[name="team"]:checked')?.value || 'A';
+            const container = document.getElementById('players-list-container');
+            const filterText = (document.getElementById('player-search')?.value || '').toLowerCase();
+            const allowedCat = window.appState.matchConfig.categories || 'ALL';
+
+            const filtered = window.appState.players.filter(p => {
+                const matchTeam = p.team === selectedTeam;
+                const matchCat = (allowedCat === 'ALL') || (p.category === allowedCat);
+                const matchSearch = p.name.toLowerCase().includes(filterText);
+                return matchTeam && matchCat && matchSearch;
+            });
+
+            document.getElementById('player-count-badge').textContent = `${filtered.length} disponible(s)`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-slate-400 text-sm">Aucun joueur dans cette sélection</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => `
+                <label class="flex items-center justify-between p-3 rounded-xl border border-slate-200/80 hover:bg-orange-50/40 cursor-pointer transition-all">
+                    <div class="flex items-center space-x-3">
+                        <input type="radio" name="selectedPlayer" value="${p.id}" class="w-4 h-4 text-vpa-500 focus:ring-vpa-500 border-slate-300">
+                        <span class="font-semibold text-slate-800 text-sm">${p.name}</span>
+                    </div>
+                    ${p.number ? `<span class="text-xs font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">#${p.number}</span>` : ''}
+                </label>
+            `).join('');
+        };
+
+        window.filterPlayers = function() {
+            window.renderPlayersList();
+        };
+
+        window.handleVote = async function(event) {
+            event.preventDefault();
+
+            if (!window.appState.votingOpen) {
+                showToast("Les votes sont actuellement fermés par l'administrateur.", "error");
+                return;
+            }
+
+            const selectedPlayerId = document.querySelector('input[name="selectedPlayer"]:checked')?.value;
+            if (!selectedPlayerId) {
+                showToast("Veuillez sélectionner un joueur !", "warning");
+                return;
+            }
+
+            const voterUid = getCurrentVoterUid();
+            const existingVote = window.appState.votes.find(v => v.voterUid === voterUid) || window.appState.userVote;
+
+            const voterName = document.getElementById('voter-name').value.trim() || 'Anonyme';
+            const selectedTeam = document.querySelector('input[name="team"]:checked').value;
+            const playerObj = window.appState.players.find(p => p.id === selectedPlayerId);
+            const selectedCat = playerObj ? playerObj.category : (window.appState.matchConfig.categories || 'H');
+
+            const votePayload = {
+                voterUid: voterUid,
+                playerId: selectedPlayerId,
+                playerName: playerObj ? playerObj.name : 'Inconnu',
+                team: selectedTeam,
+                category: selectedCat,
+                voterName: voterName,
+                timestamp: new Date().toISOString()
+            };
+
+            // Save or Update in Firestore with correct public path
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const votesCol = collection(db, 'artifacts', appId, 'public', 'data', 'votes');
+                    
+                    if (existingVote && existingVote.id) {
+                        const voteDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'votes', existingVote.id);
+                        await setDoc(voteDocRef, votePayload);
+                    } else {
+                        await addDoc(votesCol, votePayload);
+                    }
+                } catch (e) {
+                    console.error("Error saving vote:", e);
+                }
+            } else {
+                // Local fallback mode
+                if (existingVote) {
+                    const idx = window.appState.votes.findIndex(v => v.voterUid === voterUid);
+                    if (idx !== -1) {
+                        window.appState.votes[idx] = { ...existingVote, ...votePayload };
+                    } else {
+                        window.appState.votes.push({ id: Date.now().toString(), ...votePayload });
+                    }
+                } else {
+                    window.appState.votes.push({ id: Date.now().toString(), ...votePayload });
+                }
+                updateChartData();
+            }
+
+            // Save state locally
+            localStorage.setItem('potm_my_vote', JSON.stringify(votePayload));
+            window.appState.userVote = votePayload;
+            window.appState.isEditingVote = false;
+
+            showAlreadyVotedScreen(votePayload);
+            showToast(existingVote ? "Votre vote a été mis à jour !" : "Votre vote a été enregistré avec succès !");
+        };
+
+        window.resetVoteForm = function() {
+            document.getElementById('voting-form').reset();
+            window.appState.isEditingVote = false;
+            window.applyMatchConfig();
+        };
+
+        // Admin Security & Management
+        window.checkAdminPassword = function() {
+            const pwd = document.getElementById('admin-password-input').value;
+            const currentPassword = window.appState.adminPassword || localStorage.getItem('potm_admin_pwd') || 'admin123';
+
+            if (pwd === currentPassword) {
+                document.getElementById('admin-login-card').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                applyMatchConfig();
+                renderAdminPlayersList();
+                initChart();
+                showToast("Accès administrateur accordé.");
+            } else {
+                showToast("Mot de passe incorrect !", "error");
+            }
+        };
+
+        window.adminLogout = function() {
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('admin-login-card').classList.remove('hidden');
+            const pwdInput = document.getElementById('admin-password-input');
+            if (pwdInput) pwdInput.value = '';
+            showToast("Vous êtes déconnecté.");
+        };
+
+        window.changeAdminPassword = async function(event) {
+            event.preventDefault();
+            const oldPwd = document.getElementById('old-admin-password').value;
+            const newPwd = document.getElementById('new-admin-password').value;
+
+            const currentPassword = window.appState.adminPassword || localStorage.getItem('potm_admin_pwd') || 'admin123';
+
+            if (oldPwd !== currentPassword) {
+                showToast("Le mot de passe actuel est incorrect.", "error");
+                return;
+            }
+
+            if (!newPwd || newPwd.trim().length < 4) {
+                showToast("Le mot de passe doit contenir au moins 4 caractères.", "warning");
+                return;
+            }
+
+            const updatedPwd = newPwd.trim();
+            window.appState.adminPassword = updatedPwd;
+            localStorage.setItem('potm_admin_pwd', updatedPwd);
+
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const configDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'config', 'matchSettings');
+                    await setDoc(configDocRef, { ...window.appState.matchConfig, adminPassword: updatedPwd }, { merge: true });
+                } catch (e) {
+                    console.error("Erreur sauvegarde mot de passe:", e);
+                }
+            }
+
+            document.getElementById('old-admin-password').value = '';
+            document.getElementById('new-admin-password').value = '';
+            showToast("Mot de passe administrateur modifié avec succès !");
+        };
+
+        window.renderAdminPlayersList = function() {
+            const container = document.getElementById('admin-players-list');
+            const totalBadge = document.getElementById('total-squad-count');
+            
+            if (!container) return;
+
+            totalBadge.textContent = `${window.appState.players.length} joueurs`;
+
+            if (window.appState.players.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">Effectif vide</p>`;
+                return;
+            }
+
+            const { teamA, teamB } = window.appState.matchConfig;
+
+            container.innerHTML = window.appState.players.map(p => `
+                <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50 text-sm">
+                    <div class="flex items-center space-x-2 truncate">
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${p.team === 'A' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">${p.team === 'A' ? (teamA || 'Éq A') : (teamB || 'Éq B')}</span>
+                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${p.category === 'H' ? 'bg-slate-200 text-slate-700' : 'bg-pink-100 text-pink-700'}">${p.category}</span>
+                        <span class="font-medium text-slate-800 truncate">${p.name}</span>
+                        ${p.number ? `<span class="text-xs text-slate-400">#${p.number}</span>` : ''}
+                    </div>
+                    <button onclick="removePlayer('${p.id}')" class="text-slate-400 hover:text-red-500 p-1 transition-colors shrink-0">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                </div>
+            `).join('');
+        };
+
+        window.addNewPlayer = async function(event) {
+            event.preventDefault();
+            const name = document.getElementById('new-player-name').value.trim();
+            const team = document.getElementById('new-player-team').value;
+            const category = document.getElementById('new-player-category').value;
+            const number = document.getElementById('new-player-number').value || null;
+
+            if (!name) return;
+
+            const playerObj = { name, team, category, number: number ? parseInt(number) : null };
+
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players');
+                    await addDoc(playersCol, playerObj);
+                } catch (e) { console.error(e); }
+            } else {
+                window.appState.players.push({ id: Date.now().toString(), ...playerObj });
+                renderPlayersList();
+                renderAdminPlayersList();
+                updateChartData();
+            }
+
+            document.getElementById('new-player-name').value = '';
+            document.getElementById('new-player-number').value = '';
+            showToast(`${name} ajouté à la liste.`);
+        };
+
+        window.removePlayer = async function(playerId) {
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players', playerId);
+                    await deleteDoc(playerRef);
+                } catch (e) { console.error(e); }
+            } else {
+                window.appState.players = window.appState.players.filter(p => p.id !== playerId);
+                renderPlayersList();
+                renderAdminPlayersList();
+                updateChartData();
+            }
+            showToast("Joueur supprimé.");
+        };
+
+        window.toggleVotingStatus = function() {
+            window.appState.votingOpen = !window.appState.votingOpen;
+            const btn = document.getElementById('status-toggle-btn');
+            const banner = document.getElementById('match-status-banner');
+            const badge = document.getElementById('status-badge');
+
+            if (window.appState.votingOpen) {
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg border transition-all bg-emerald-50 text-emerald-700 border-emerald-200";
+                btn.innerHTML = `<i class="fa-solid fa-power-off mr-1"></i> Vote Actif`;
+                banner.className = "bg-gradient-to-r from-vpa-dark via-slate-900 to-vpa-slate text-white rounded-2xl p-5 border border-slate-700/80 shadow-xl relative overflow-hidden transition-all duration-300";
+                if (badge) {
+                    badge.className = "inline-flex items-center px-2.5 py-0.5 bg-vpa-green/20 border border-vpa-green/40 text-emerald-300 rounded-full text-xs font-bold tracking-wide uppercase";
+                    badge.innerHTML = `<i class="fa-solid fa-circle text-[8px] text-emerald-400 animate-pulse mr-1.5"></i> Élection du Joueur du Match`;
+                }
+            } else {
+                btn.className = "px-3 py-1.5 text-xs font-bold rounded-lg border transition-all bg-amber-50 text-amber-700 border-amber-200";
+                btn.innerHTML = `<i class="fa-solid fa-lock mr-1"></i> Votes Fermés`;
+                banner.className = "bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-slate-300 rounded-2xl p-5 border border-amber-500/40 shadow-xl relative overflow-hidden transition-all duration-300";
+                if (badge) {
+                    badge.className = "inline-flex items-center px-2.5 py-0.5 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-full text-xs font-bold tracking-wide uppercase";
+                    badge.innerHTML = `<i class="fa-solid fa-lock text-[8px] text-amber-400 mr-1.5"></i> Votes Clos`;
+                }
+            }
+        };
+
+        // Custom Modal handlers replacing confirm()
+        window.openResetModal = function() {
+            document.getElementById('modal-confirm-reset')?.classList.remove('hidden');
+        };
+
+        window.closeResetModal = function() {
+            document.getElementById('modal-confirm-reset')?.classList.add('hidden');
+        };
+
+        window.confirmClearVotes = async function() {
+            closeResetModal();
+
+            localStorage.removeItem('potm_my_vote');
+            window.appState.userVote = null;
+            window.appState.isEditingVote = false;
+
+            if (db && window.appState.user) {
+                try {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'bogny-vpa-handball-potm';
+                    const votesCol = collection(db, 'artifacts', appId, 'public', 'data', 'votes');
+                    const snapshot = await getDocs(votesCol);
+                    snapshot.docs.forEach(async (d) => await deleteDoc(d.ref));
+                } catch (e) { console.error(e); }
+            } else {
+                window.appState.votes = [];
+                updateChartData();
+            }
+
+            document.getElementById('voting-form')?.classList.remove('hidden');
+            document.getElementById('vote-success-screen')?.classList.add('hidden');
+            showToast("Tous les votes ont été réinitialisés.");
+        };
+
+        // Results Filter & Switching Logic
+        window.switchResultsDisplay = function(mode) {
+            window.appState.resultsDisplayMode = mode;
+            const btnList = document.getElementById('btn-disp-list');
+            const btnChart = document.getElementById('btn-disp-chart');
+            const listContainer = document.getElementById('results-leaderboard-view');
+            const chartContainer = document.getElementById('results-chart-view');
+
+            if (mode === 'list') {
+                btnList.className = "px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold";
+                btnChart.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900";
+                listContainer.classList.remove('hidden');
+                chartContainer.classList.add('hidden');
+            } else {
+                btnChart.className = "px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold";
+                btnList.className = "px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-900";
+                chartContainer.classList.remove('hidden');
+                listContainer.classList.add('hidden');
+            }
+            updateChartData();
+        };
+
+        window.switchChartTeam = function(team) {
+            window.appState.activeChartTeam = team;
+            const btnA = document.getElementById('btn-chart-team-a');
+            const btnB = document.getElementById('btn-chart-team-b');
+
+            if (team === 'A') {
+                btnA.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-vpa-700 font-bold transition-all truncate";
+                btnB.className = "px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-all truncate";
+            } else {
+                btnB.className = "px-3 py-1.5 rounded-lg bg-white shadow-sm text-vpa-green-dark font-bold transition-all truncate";
+                btnA.className = "px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 transition-all truncate";
+            }
+            updateChartData();
+        };
+
+        window.switchChartCategory = function(cat) {
+            window.appState.activeChartCategory = cat;
+            const btnAll = document.getElementById('btn-chart-cat-all');
+            const btnH = document.getElementById('btn-chart-cat-h');
+            const btnF = document.getElementById('btn-chart-cat-f');
+
+            btnAll.className = cat === 'ALL' ? "px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold" : "px-2.5 py-1 rounded-lg text-slate-500";
+            btnH.className = cat === 'H' ? "px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold" : "px-2.5 py-1 rounded-lg text-slate-500";
+            btnF.className = cat === 'F' ? "px-2.5 py-1 rounded-lg bg-white shadow-sm text-slate-900 font-bold" : "px-2.5 py-1 rounded-lg text-slate-500";
+
+            updateChartData();
+        };
+
+        function initChart() {
+            const ctx = document.getElementById('votesChart')?.getContext('2d');
+            if (!ctx) return;
+
+            // Safely destroy prior Chart instance to avoid "Canvas is already in use"
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Nombre de Votes',
+                        data: [],
+                        backgroundColor: '#f97316',
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            updateChartData();
+        }
+
+        function updateChartData() {
+            const team = window.appState.activeChartTeam;
+            const cat = window.appState.activeChartCategory;
+
+            // Filter players for active view
+            let playersInView = window.appState.players.filter(p => p.team === team);
+            if (cat !== 'ALL') {
+                playersInView = playersInView.filter(p => p.category === cat);
+            }
+
+            // Calculate vote count per player
+            const playerStats = playersInView.map(p => {
+                const count = window.appState.votes.filter(v => v.playerId === p.id).length;
+                return { ...p, voteCount: count };
+            });
+
+            // Sort by vote count descending
+            playerStats.sort((a, b) => b.voteCount - a.voteCount);
+
+            // Compute Total votes for percentage calculation
+            const totalTeamVotes = playerStats.reduce((sum, p) => sum + p.voteCount, 0);
+
+            // Render Streamlined Leaderboard List
+            const listContainer = document.getElementById('results-leaderboard-view');
+            if (listContainer) {
+                if (playerStats.length === 0) {
+                    listContainer.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">Aucun joueur dans cette sélection</div>`;
+                } else {
+                    listContainer.innerHTML = playerStats.map((p, idx) => {
+                        const pct = totalTeamVotes > 0 ? Math.round((p.voteCount / totalTeamVotes) * 100) : 0;
+                        let rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center shrink-0">${idx + 1}</span>`;
+                        
+                        if (idx === 0) {
+                            rankBadge = `<span class="w-6 h-6 rounded-full bg-vpa-500 text-white text-xs font-black flex items-center justify-center shrink-0 shadow-sm"><i class="fa-solid fa-crown text-[10px]"></i></span>`;
+                        } else if (idx === 1) {
+                            rankBadge = `<span class="w-6 h-6 rounded-full bg-slate-300 text-slate-800 text-xs font-bold flex items-center justify-center shrink-0">2</span>`;
+                        } else if (idx === 2) {
+                            rankBadge = `<span class="w-6 h-6 rounded-full bg-amber-700/30 text-amber-900 text-xs font-bold flex items-center justify-center shrink-0">3</span>`;
+                        }
+
+                        return `
+                            <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between space-x-3">
+                                <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+                                    ${rankBadge}
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="font-bold text-slate-900 text-xs sm:text-sm truncate">${p.name} ${p.number ? `<span class="text-slate-400 text-xs font-normal">#${p.number}</span>` : ''}</span>
+                                            <span class="font-black text-xs text-slate-700 ml-2">${p.voteCount} vote${p.voteCount > 1 ? 's' : ''} (${pct}%)</span>
+                                        </div>
+                                        <!-- Progress Bar with VPA Theme Colors -->
+                                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                            <div class="h-full ${p.team === 'A' ? 'bg-vpa-500' : 'bg-vpa-green'} rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            }
+
+            // Update Chart.js Data
+            if (chartInstance) {
+                chartInstance.data.labels = playerStats.map(p => p.name);
+                chartInstance.data.datasets[0].data = playerStats.map(p => p.voteCount);
+                chartInstance.data.datasets[0].backgroundColor = team === 'A' ? '#f97316' : '#10b981';
+                chartInstance.update();
+            }
+
+            // Update Dual Podium Highlights
+            const { teamA, teamB } = window.appState.matchConfig;
+            const podiumA = document.getElementById('podium-team-a-name');
+            const podiumB = document.getElementById('podium-team-b-name');
+            if (podiumA) podiumA.textContent = `MVP ${teamA || 'Équipe A'}`;
+            if (podiumB) podiumB.textContent = `MVP ${teamB || 'Équipe B'}`;
+
+            // Compute overall leader for Team A
+            const teamAPlayers = window.appState.players.filter(p => p.team === 'A').map(p => ({
+                name: p.name,
+                count: window.appState.votes.filter(v => v.playerId === p.id).length
+            })).sort((a,b) => b.count - a.count);
+
+            const teamBPlayers = window.appState.players.filter(p => p.team === 'B').map(p => ({
+                name: p.name,
+                count: window.appState.votes.filter(v => v.playerId === p.id).length
+            })).sort((a,b) => b.count - a.count);
+
+            const winnerAEl = document.getElementById('podium-team-a-winner');
+            const countAEl = document.getElementById('podium-team-a-count');
+            const winnerBEl = document.getElementById('podium-team-b-winner');
+            const countBEl = document.getElementById('podium-team-b-count');
+
+            if (teamAPlayers.length > 0 && teamAPlayers[0].count > 0) {
+                if (winnerAEl) winnerAEl.textContent = teamAPlayers[0].name;
+                if (countAEl) countAEl.textContent = `${teamAPlayers[0].count} vote(s)`;
+            } else {
+                if (winnerAEl) winnerAEl.textContent = 'Aucun vote';
+                if (countAEl) countAEl.textContent = '0 vote';
+            }
+
+            if (teamBPlayers.length > 0 && teamBPlayers[0].count > 0) {
+                if (winnerBEl) winnerBEl.textContent = teamBPlayers[0].name;
+                if (countBEl) countBEl.textContent = `${teamBPlayers[0].count} vote(s)`;
+            } else {
+                if (winnerBEl) winnerBEl.textContent = 'Aucun vote';
+                if (countBEl) countBEl.textContent = '0 vote';
+            }
+
+            const totalVotesEl = document.getElementById('total-votes-count');
+            const lastUpdatedEl = document.getElementById('last-updated-time');
+
+            if (totalVotesEl) totalVotesEl.textContent = window.appState.votes.length;
+            if (lastUpdatedEl) lastUpdatedEl.textContent = `Synchro: ${new Date().toLocaleTimeString()}`;
+        }
+
+        // Toast Helper
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            const toastIcon = document.getElementById('toast-icon');
+
+            if (!toast || !toastMsg || !toastIcon) return;
+
+            toastMsg.textContent = msg;
+
+            if (type === 'error') {
+                toastIcon.className = "fa-solid fa-circle-exclamation text-red-400";
+            } else if (type === 'warning') {
+                toastIcon.className = "fa-solid fa-triangle-exclamation text-amber-400";
+            } else {
+                toastIcon.className = "fa-solid fa-circle-check text-vpa-500";
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Init App on Window Load
+        window.onload = function() {
+            initFirebase();
+            applyMatchConfig();
+        };
+    </script>
+</body>
+</html>
